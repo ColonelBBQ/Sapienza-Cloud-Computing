@@ -3,11 +3,15 @@ import '@aws-amplify/ui-react/styles.css'
 import { useEffect, useState } from "react";
 import type { Schema } from "../amplify/data/resource";
 import { generateClient } from "aws-amplify/data";
+import { fetchAuthSession } from 'aws-amplify/auth';
+
+await fetchAuthSession({ forceRefresh: true });
 
 const client = generateClient<Schema>();
 
 function App() {
   const [todos, setTodos] = useState<Array<Schema["Todo"]["type"]>>([]);
+  
 
   useEffect(() => {
     client.models.Todo.observeQuery().subscribe({
@@ -18,7 +22,6 @@ function App() {
   function createTodo() {
     client.models.Todo.create({ content: window.prompt("Todo content") });
   }
-
     
   function deleteTodo(id: string) {
     client.models.Todo.delete({ id })
