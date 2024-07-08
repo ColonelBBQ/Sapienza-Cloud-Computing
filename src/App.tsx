@@ -4,6 +4,10 @@ import { useEffect, useState } from "react";
 import type { Schema } from "../amplify/data/resource";
 import { generateClient } from "aws-amplify/data";
 import { fetchUserAttributes } from '@aws-amplify/auth';
+import { Amplify } from 'aws-amplify';
+import outputs from "../amplify_outputs.json";
+
+Amplify.configure(outputs);
 
 const client = generateClient<Schema>({
   authMode: 'userPool',
@@ -19,8 +23,8 @@ function App() {
     });
 
     // Fetch user attributes when component mounts
-    fetchUserAttributes().then(attributes => {
-      setUserName(attributes.given_name || attributes.givenName || "User");
+  fetchUserAttributes().then(attributes => {
+    setUserName(attributes.given_name || attributes.givenName || "User");
     }).catch(console.error);
   }, []);
 
