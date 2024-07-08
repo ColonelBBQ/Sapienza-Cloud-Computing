@@ -3,42 +3,19 @@ import '@aws-amplify/ui-react/styles.css'
 import { useEffect, useState } from "react";
 import type { Schema } from "../amplify/data/resource";
 import { generateClient } from "aws-amplify/data";
-import { fetchAuthSession, type AuthSession } from 'aws-amplify/auth';
 
-const client = generateClient<Schema>();
+const client = generateClient<Schema>({
+  authMode: 'userPool',
+});
 
 function App() {
   const [todos, setTodos] = useState<Array<Schema["Todo"]["type"]>>([]);
-  const [session, setSession] = useState<AuthSession | null>(null);
 
   useEffect(() => {
-    const refreshSession = async () => {
-      try {
-        const newSession = await fetchAuthSession({ forceRefresh: true });
-        setSession(newSession);
-        console.log("id token", newSession.tokens?.idToken);
-        console.log("access token", newSession.tokens?.accessToken);
-      } catch (error) {
-        console.error("Error refreshing session:", error);
-      }
-    };
-
-    refreshSession();
+    client.models.Todo.observeQuery().subscribe({
+      next: (data) => setTodos([...data.items]),
+    });
   }, []);
-
-  useEffect(() => {
-    setTodos([]);
-  }, [session]);
-
-  useEffect(() => {
-    if (session) {
-      const subscription = client.models.Todo.observeQuery().subscribe({
-        next: (data) => setTodos([...data.items]),
-      });
-
-      return () => subscription.unsubscribe();
-    }
-  }, [session]);
 
   function createTodo() {
     client.models.Todo.create({ content: window.prompt("Todo content") });
@@ -70,7 +47,7 @@ function App() {
           </div>
           <button onClick={signOut}>Sign out</button>
         </main>        
-      )}
+    )}
     </Authenticator>
   );
 }
