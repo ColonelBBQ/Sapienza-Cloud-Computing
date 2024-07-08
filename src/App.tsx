@@ -38,7 +38,7 @@ function App() {
 
   return (
     <Authenticator signUpAttributes={['given_name', 'name', "email"]} socialProviders={['apple', 'google']} >
-      {({ signOut, user }) => {
+      {({ signOut }) => {
         return (
           <main>
             <h1>{userName}'s Meditation Sessions</h1>
