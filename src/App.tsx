@@ -3,51 +3,53 @@ import '@aws-amplify/ui-react/styles.css'
 import { useEffect, useState } from "react";
 import type { Schema } from "../amplify/data/resource";
 import { generateClient } from "aws-amplify/data";
+import { fetchUserAttributes } from '@aws-amplify/auth';
 
 const client = generateClient<Schema>({
   authMode: 'userPool',
 });
 
 function App() {
-  const [todos, setTodos] = useState<Array<Schema["Todo"]["type"]>>([]);
+  const [sessions, setSessions] = useState<Array<Schema["Sessions"]["type"]>>([]);
+  const [userName, setUserName] = useState<string>("");
 
   useEffect(() => {
-    client.models.Todo.observeQuery().subscribe({
-      next: (data) => setTodos([...data.items]),
+    client.models.Sessions.observeQuery().subscribe({
+      next: (data) => setSessions([...data.items]),
     });
+
+    // Fetch user attributes when component mounts
+    fetchUserAttributes().then(attributes => {
+      setUserName(attributes.given_name || attributes.givenName || "User");
+    }).catch(console.error);
   }, []);
 
-  function createTodo() {
-    client.models.Todo.create({ content: window.prompt("Todo content") });
+  function createSession() {
+    client.models.Sessions.create({ content: window.prompt("Todo content") });
   }
     
-  function deleteTodo(id: string) {
-    client.models.Todo.delete({ id })
+  function deleteSession(id: string) {
+    client.models.Sessions.delete({ id })
   }
 
   return (
-    <Authenticator>
-      {({ signOut, user }) => (
-        <main>
-          <h1>{user?.signInDetails?.loginId}'s todos</h1>
-          <button onClick={createTodo}>+ new</button>
-          <ul>
-            {todos.map((todo) => (
-              <li 
-              onClick={() => deleteTodo(todo.id)}
-              key={todo.id}>{todo.content}</li>
-            ))}
-          </ul>
-          <div>
-            🥳 App successfully hosted. Try creating a new todo.
-            <br />
-            <a href="https://docs.amplify.aws/react/start/quickstart/#make-frontend-updates">
-              Review next step of this tutorial.
-            </a>
-          </div>
-          <button onClick={signOut}>Sign out</button>
-        </main>        
-    )}
+    <Authenticator signUpAttributes={['given_name', 'name', "email"]} socialProviders={['apple', 'google']} >
+      {({ signOut, user }) => {
+        return (
+          <main>
+            <h1>{userName}'s Meditation Sessions</h1>
+            <button onClick={createSession}>+ new</button>
+            <ul>
+              {sessions.map((session) => (
+                <li 
+                  onClick={() => deleteSession(session.id)}
+                  key={session.id}>{session.content}</li>
+              ))}
+            </ul>
+            <button onClick={signOut}>Sign out</button>
+          </main>
+        );
+      }}
     </Authenticator>
   );
 }
