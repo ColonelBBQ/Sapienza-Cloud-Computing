@@ -7,6 +7,7 @@ body {
   width: 100vw;
   justify-content: center;
   align-items: center;
+
 }
 
 main {
@@ -83,4 +84,13 @@ input[type="radio"] {
 .star-container {
   display: flex;
   justify-content: center;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.nav-container {
+  display: flex;
 }
