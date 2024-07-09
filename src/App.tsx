@@ -6,6 +6,8 @@ import { generateClient } from "aws-amplify/data";
 import { fetchUserAttributes } from '@aws-amplify/auth';
 import { Amplify } from 'aws-amplify';
 import outputs from "../amplify_outputs.json";
+import StarRating from './components/StarRating';
+import { format } from 'date-fns';
 
 Amplify.configure(outputs);
 
@@ -17,7 +19,7 @@ function App() {
   const [sessions, setSessions] = useState<Array<Schema["Sessions"]["type"]>>([]);
   const [userName, setUserName] = useState<string>("");
   const [content, setContent] = useState('');
-  const [rating, setRating] = useState('');
+  const [rating, setRating] = useState('0');
 
   useEffect(() => {
     client.models.Sessions.observeQuery().subscribe({
@@ -29,9 +31,6 @@ function App() {
     }).catch(console.error);
   }, []);
     
-  function deleteSession(id: string) {
-    client.models.Sessions.delete({ id })
-  }
 
   async function createSession() {
     if (!content || !rating) {
@@ -62,6 +61,10 @@ function App() {
     }
   }
 
+  const handleRatingChange = (newRating: number) => {
+    setRating(newRating.toString());
+  };
+
   return (
     <Authenticator signUpAttributes={['given_name', "email"]} socialProviders={['apple', 'google']} >
       {({ signOut }) => {
@@ -75,21 +78,19 @@ function App() {
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
               />
-              <input 
-                type="number" 
-                min="1" 
-                max="5"
-                placeholder="Rate (1-5)"
-                value={rating}
-                onChange={(e) => setRating(e.target.value)}
-              />
-              <button onClick={createSession}>Send</button>
+            <StarRating totalStars={5} onChange={handleRatingChange} />              
+            <button onClick={createSession}>Send</button>
             </div>
             <ul>
               {sessions.map((session) => (
                 <li 
-                  onClick={() => deleteSession(session.id)}
-                  key={session.id}>{session.content}</li>
+                  key={session.id}>
+                    <div className='container-sessions'>
+                      <div className='session'>
+                        {format(new Date(session.createdAt), 'yyyy-MM-dd HH:mm')}, {session.score_rating}
+                      </div>
+                    </div>
+                </li>
               ))}
             </ul>
             <button onClick={signOut}>Sign out</button>
