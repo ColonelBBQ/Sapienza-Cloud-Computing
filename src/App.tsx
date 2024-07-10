@@ -7,12 +7,11 @@ import { fetchUserAttributes } from '@aws-amplify/auth';
 import { Amplify } from 'aws-amplify';
 import outputs from "../amplify_outputs.json";
 import Home from './pages/Home';
+import HomeNoSession from './pages/HomeNoSession';
 
 Amplify.configure(outputs);
 
-const client = generateClient<Schema>({
-  authMode: 'userPool',
-});
+const client = generateClient<Schema>({});
 
 function App() {
   const [sessions, setSessions] = useState<Array<Schema["Sessions"]["type"]>>([]);
@@ -37,8 +36,11 @@ function App() {
             <div className='nav-container'>
               <button onClick={signOut}>Sign out</button>
             </div>
-            <Home client={client} userName={userName} sessions={sessions}/>
-          </div>
+            {sessions.length === 0 ? (
+              <HomeNoSession client={client} userName={userName} />
+            ) : (
+              <Home client={client} userName={userName} sessions={sessions} />
+            )}          </div>
         );
       }}
     </Authenticator>
