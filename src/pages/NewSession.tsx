@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import StarRating from '../components/StarRating';
 import { Schema } from "../../amplify/data/resource";  
 import { generateClient } from "aws-amplify/data";
+import { useNavigate } from 'react-router-dom';
+
 
 type GeneratedClient = ReturnType<typeof generateClient<Schema>>;
 
@@ -18,7 +20,7 @@ export function NewSession({ client }: HomeProps) {
   const [elapsedTime, setElapsedTime] = useState<number | null>(null);
   const [isStart, setIsStart] = useState(true);
   const [isQuit, setIsQuit] = useState(false);
-
+  const navigate = useNavigate();
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -70,6 +72,7 @@ export function NewSession({ client }: HomeProps) {
       setRating('');
       
       alert('Session created successfully!');
+      navigate('/')
       
     } catch (error) {
       console.error('Error creating session:', error);
