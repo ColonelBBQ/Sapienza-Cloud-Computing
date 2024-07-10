@@ -1,10 +1,9 @@
 import '@aws-amplify/ui-react/styles.css';
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import StarRating from '../components/StarRating';
 import { Schema } from "../../amplify/data/resource";  
 import { generateClient } from "aws-amplify/data";
 import { useNavigate } from 'react-router-dom';
-
 
 type GeneratedClient = ReturnType<typeof generateClient<Schema>>;
 
@@ -20,6 +19,10 @@ export function NewSession({ client }: HomeProps) {
   const [elapsedTime, setElapsedTime] = useState<number | null>(null);
   const [isStart, setIsStart] = useState(true);
   const [isQuit, setIsQuit] = useState(false);
+
+  const [audioData, setAudioData] = useState<Uint8Array | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -36,6 +39,70 @@ export function NewSession({ client }: HomeProps) {
 
     return () => clearInterval(interval);
   }, [isRecording, startTime]);
+
+  useEffect(() => {
+    if (isRecording) {
+      const audioContext = new (window.AudioContext || window.AudioContext)();
+      const analyser = audioContext.createAnalyser();
+      analyser.fftSize = 2048;
+      analyserRef.current = analyser;
+
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+          const source = audioContext.createMediaStreamSource(stream);
+          source.connect(analyser);
+
+          const dataArray = new Uint8Array(analyser.frequencyBinCount);
+          const draw = () => {
+            analyser.getByteTimeDomainData(dataArray);
+            setAudioData(new Uint8Array(dataArray));
+            requestAnimationFrame(draw);
+          };
+          draw();
+        })
+        .catch(error => console.error('Error accessing microphone:', error));
+    } else {
+      analyserRef.current = null;
+      setAudioData(null);
+    }
+  }, [isRecording]);
+
+  useEffect(() => {
+    if (!audioData || !canvasRef.current) return;
+
+    const canvas = canvasRef.current;
+    const canvasContext = canvas.getContext('2d');
+    if (!canvasContext) return;
+
+    canvasContext.clearRect(0, 0, canvas.width, canvas.height);
+
+    canvasContext.fillStyle = 'rgb(200, 200, 200)';
+    canvasContext.fillRect(0, 0, canvas.width, canvas.height);
+
+    canvasContext.lineWidth = 2;
+    canvasContext.strokeStyle = 'rgb(0, 0, 0)';
+
+    canvasContext.beginPath();
+
+    const sliceWidth = canvas.width * 1.0 / audioData.length;
+    let x = 0;
+
+    for(let i = 0; i < audioData.length; i++) {
+      const v = audioData[i] / 128.0;
+      const y = v * canvas.height / 2;
+
+      if(i === 0) {
+        canvasContext.moveTo(x, y);
+      } else {
+        canvasContext.lineTo(x, y);
+      }
+
+      x += sliceWidth;
+    }
+
+    canvasContext.lineTo(canvas.width, canvas.height / 2);
+    canvasContext.stroke();
+  }, [audioData]);
 
   const startRecording = () => {
     setIsRecording(true);
@@ -105,6 +172,7 @@ export function NewSession({ client }: HomeProps) {
         {isRecording && !isQuit && (
           <>
             <p>Recording Time: {formatTime(elapsedTime)}</p>
+            <canvas ref={canvasRef} width={300} height={100}></canvas>
             <button onClick={stopRecording}>Quit</button>
           </>
         )}
