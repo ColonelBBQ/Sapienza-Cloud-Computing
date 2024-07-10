@@ -8,11 +8,9 @@ type GeneratedClient = ReturnType<typeof generateClient<Schema>>;
 
 interface HomeProps {
     client: GeneratedClient;
-    userName: string;
-    sessions: Array<Schema["Sessions"]["type"]>;
 }
 
-export function Home({ client, userName, sessions }: HomeProps) {
+export function NewSession({ client }: HomeProps) {
   const [content, setContent] = useState('');
   const [rating, setRating] = useState('0');
 
@@ -65,4 +63,4 @@ export function Home({ client, userName, sessions }: HomeProps) {
   );
 }
 
-export default Home;
+export default NewSession;
