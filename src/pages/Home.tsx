@@ -1,7 +1,6 @@
 import '@aws-amplify/ui-react/styles.css'
 import { useState } from "react";
 import StarRating from '../components/StarRating';
-import { format } from 'date-fns';
 import { Schema } from "../../amplify/data/resource";  
 import { generateClient } from "aws-amplify/data";
 
@@ -52,7 +51,6 @@ export function Home({ client, userName, sessions }: HomeProps) {
 
   return (
     <main>
-      <h1>{userName} Meditation Sessions</h1>
       <div className='container-activity'>
         <input 
           type="text" 
@@ -63,18 +61,6 @@ export function Home({ client, userName, sessions }: HomeProps) {
         <StarRating totalStars={5} onChange={handleRatingChange} />              
         <button onClick={createSession}>Send</button>
       </div>
-      <ul>
-        {sessions.map((session) => (
-          <li key={session.id}>
-            <div className='container-sessions'>
-              <div className='session'>
-                <div>Date: {format(new Date(session.createdAt), 'yyyy-MM-dd')}, Duration: {format(new Date(session.createdAt), 'HH:mm')}, Rating: {session.score_rating}</div>
-                <div>Session Description: {session.content}</div>
-              </div>
-            </div>
-          </li>
-        ))}
-      </ul>
     </main>
   );
 }

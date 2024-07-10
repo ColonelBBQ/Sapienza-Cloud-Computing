@@ -8,6 +8,8 @@ import { Amplify } from 'aws-amplify';
 import outputs from "../amplify_outputs.json";
 import Home from './pages/Home';
 import HomeNoSession from './pages/HomeNoSession';
+import { format } from 'date-fns';
+
 
 Amplify.configure(outputs);
 
@@ -36,11 +38,25 @@ function App() {
             <div className='nav-container'>
               <button onClick={signOut}>Sign out</button>
             </div>
-            {sessions.length === 0 ? (
-              <HomeNoSession client={client} userName={userName} />
-            ) : (
-              <Home client={client} userName={userName} sessions={sessions} />
-            )}          </div>
+            <h1>Hi {userName}! Welcome to Your Meditation Diary!</h1>
+            <div>
+              <h3>Here are Your Recent Activities:</h3>
+              <ul>
+                {sessions.map((session) => (
+                  <li key={session.id}>
+                    <div className='container-sessions'>
+                      <div className='session'>
+                        <div>Date: {format(new Date(session.createdAt), 'yyyy-MM-dd')}, Duration: {format(new Date(session.createdAt), 'HH:mm')}, Rating: {session.score_rating}</div>
+                        <div>Session Description: {session.content}</div>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              <button>Start New Session!</button>
+            </div>
+
+          </div>
         );
       }}
     </Authenticator>
