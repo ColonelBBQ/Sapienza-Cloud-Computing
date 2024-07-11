@@ -19,10 +19,13 @@ export function NewSession({ client }: HomeProps) {
   const [elapsedTime, setElapsedTime] = useState<number | null>(null);
   const [isStart, setIsStart] = useState(true);
   const [isQuit, setIsQuit] = useState(false);
-
   const [audioData, setAudioData] = useState<Uint8Array | null>(null);
+  const [averageVolume, setAverageVolume] = useState<number>(0);
+  const [maxVolume, setMaxVolume] = useState<number>(0);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -46,16 +49,26 @@ export function NewSession({ client }: HomeProps) {
       const analyser = audioContext.createAnalyser();
       analyser.fftSize = 2048;
       analyserRef.current = analyser;
+      audioContextRef.current = audioContext;
 
       navigator.mediaDevices.getUserMedia({ audio: true })
         .then(stream => {
+          mediaStreamRef.current = stream;
           const source = audioContext.createMediaStreamSource(stream);
           source.connect(analyser);
 
           const dataArray = new Uint8Array(analyser.frequencyBinCount);
           const draw = () => {
             analyser.getByteTimeDomainData(dataArray);
-            setAudioData(new Uint8Array(dataArray));
+            setAudioData(new Uint8Array(dataArray)); // Clone the dataArray to trigger re-render
+
+            // Calculate average and max volume
+            const sum = dataArray.reduce((acc, val) => acc + Math.abs(val - 128), 0);
+            const avgVolume = sum / dataArray.length;
+            const maxVolume = Math.max(...dataArray.map(val => Math.abs(val - 128)));
+            setAverageVolume(avgVolume);
+            setMaxVolume(maxVolume);
+
             requestAnimationFrame(draw);
           };
           draw();
@@ -64,7 +77,18 @@ export function NewSession({ client }: HomeProps) {
     } else {
       analyserRef.current = null;
       setAudioData(null);
+      setAverageVolume(0);
+      setMaxVolume(0);
     }
+
+    return () => {
+      if (mediaStreamRef.current) {
+        mediaStreamRef.current.getTracks().forEach(track => track.stop());
+      }
+      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+        audioContextRef.current.close();
+      }
+    };
   }, [isRecording]);
 
   useEffect(() => {
@@ -107,13 +131,32 @@ export function NewSession({ client }: HomeProps) {
   const startRecording = () => {
     setIsRecording(true);
     setStartTime(Date.now());
-    setIsStart(false)
+    setIsStart(false);
   };
 
   const stopRecording = () => {
     setIsRecording(false);
     setStartTime(null);
-    setIsQuit(true)
+    setIsQuit(true);
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach(track => track.stop());
+    }
+    if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+      audioContextRef.current.close();
+    }
+  };
+
+  const mapVolumeToScore = (volume: number, maxVolume: number) => {
+    // Assuming volume ranges from 0 to 128 (max amplitude value for Uint8Array)
+    const maxVolumeValue = 128;
+    const normalizedAverageVolume = Math.min(volume*10, maxVolumeValue) / maxVolumeValue; // Normalize volume to range 0-1
+    const normalizedMaxVolume = Math.min(maxVolume*0.1, maxVolumeValue);
+    console.log('Normalized Average Volume:', normalizedAverageVolume);
+    console.log('Normalized Max Volume:', normalizedMaxVolume);
+
+    // Map to score 1-5, penalize for high max volume
+    const scoreWithPenalty = 5 - normalizedAverageVolume*5 - normalizedMaxVolume; 
+    return Math.max(1, Math.round(scoreWithPenalty));
   };
 
   async function createSession() {
@@ -128,18 +171,20 @@ export function NewSession({ client }: HomeProps) {
       return;
     }
 
+    const scoreVolume = mapVolumeToScore(averageVolume, maxVolume);
+
     try {
       await client.models.Sessions.create({
         content: content,
         score_rating: numericRating,
-        score_volume: 0
+        score_volume: scoreVolume
       });
       
       setContent('');
-      setRating('');
+      setRating('0');
       
       alert('Session created successfully!');
-      navigate('/')
+      navigate('/');
       
     } catch (error) {
       console.error('Error creating session:', error);

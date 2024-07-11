@@ -44,7 +44,7 @@ function Home() {
                 <li key={session.id}>
                   <div className='container-sessions'>
                     <div className='session'>
-                      <div>Date: {format(new Date(session.createdAt), 'yyyy-MM-dd')}, Duration: {format(new Date(session.createdAt), 'HH:mm')}, Rating: {session.score_rating}</div>
+                      <div>Date: {format(new Date(session.createdAt), 'yyyy-MM-dd')}, Volume: {session.score_volume}, Rating: {session.score_rating}</div>
                       <div>Session Description: {session.content}</div>
                     </div>
                   </div>
