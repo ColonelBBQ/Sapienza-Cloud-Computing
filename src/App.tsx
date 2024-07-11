@@ -16,6 +16,7 @@ const client = generateClient<Schema>({});
 
 function Home() {
   const [sessions, setSessions] = useState<Array<Schema["Sessions"]["type"]>>([]);
+  const [recentSessions, setRecentSessions] = useState<Array<Schema["Sessions"]["type"]>>([]);
   const [userName, setUserName] = useState<string>("");
   const navigate = useNavigate();
 
@@ -29,29 +30,43 @@ function Home() {
     }).catch(console.error);
   }, []);
 
+  useEffect(() => {
+    setRecentSessions(sessions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 6));
+  }, [sessions]);
+  
   return (
     <Authenticator signUpAttributes={['given_name', "email"]} socialProviders={['apple', 'google']}>
       {({ signOut }) => (
         <div className='app-container'>
-          <div className='nav-container'>
-            <button onClick={signOut}>Sign out</button>
-          </div>
-          <h1>Hi {userName}! Welcome to Your Meditation Diary!</h1>
-          <div>
-            <h3>Here are Your Recent Activities:</h3>
+          <nav className='nav-bar'>
+            <a className="navbar-brand" href="/">
+             <img className='logo-img' src="src/assets/logo.png" alt="" />
+             meditdiary
+            </a>
+            <div className='nav-container'>
+              <button className="button-sign-out" onClick={signOut}>Sign out</button>
+            </div>
+          </nav>
+
+          <h1 className='main-title'>Hi {userName}! Welcome to Your Meditation Diary!</h1>
+          <div className='container-sessions-with-title'>
+            <h2>Here are Your Recent Activities:</h2>
             <ul>
-              {sessions.map((session) => (
-                <li key={session.id}>
+              {recentSessions.map((recentSessions) => (
+                <li key={recentSessions.id}>
                   <div className='container-sessions'>
                     <div className='session'>
-                      <div>Date: {format(new Date(session.createdAt), 'yyyy-MM-dd')}, Volume: {session.score_volume}, Rating: {session.score_rating}</div>
-                      <div>Session Description: {session.content}</div>
+                      <div>Date: {format(new Date(recentSessions.createdAt), 'yyyy-MM-dd')}, Volume: {recentSessions.score_volume}, Rating: {recentSessions.score_rating}</div>
+                      <div>Session Description: {recentSessions.content}</div>
                     </div>
                   </div>
                 </li>
               ))}
             </ul>
-            <button onClick={() => navigate('/new-session')}>Start New Session!</button>
+            <button className='button-start-main' onClick={() => navigate('/new-session')}>Start New Session!</button>
+          </div>
+          <div>
+          
           </div>
         </div>
       )}

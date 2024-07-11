@@ -4,6 +4,7 @@ import StarRating from '../components/StarRating';
 import { Schema } from "../../amplify/data/resource";  
 import { generateClient } from "aws-amplify/data";
 import { useNavigate } from 'react-router-dom';
+import { fetchUserAttributes } from '@aws-amplify/auth';
 
 type GeneratedClient = ReturnType<typeof generateClient<Schema>>;
 
@@ -16,6 +17,7 @@ export function NewSession({ client }: HomeProps) {
   const [rating, setRating] = useState('0');
   const [isRecording, setIsRecording] = useState(false);
   const [startTime, setStartTime] = useState<number | null>(null);
+  const [endTime, setEndTime] = useState<number | null>(null);
   const [elapsedTime, setElapsedTime] = useState<number | null>(null);
   const [isStart, setIsStart] = useState(true);
   const [isQuit, setIsQuit] = useState(false);
@@ -26,7 +28,14 @@ export function NewSession({ client }: HomeProps) {
   const analyserRef = useRef<AnalyserNode | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
+  const [userId, setUserId] = useState<string>("");
   const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchUserAttributes().then(attributes => {
+      setUserId(attributes.sub || 'Unknown');
+    }).catch(console.error);
+  }, []);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -34,8 +43,9 @@ export function NewSession({ client }: HomeProps) {
       interval = setInterval(() => {
         const currentTime = Date.now();
         const elapsedTime = currentTime - startTime;
+        setEndTime(currentTime)
         setElapsedTime(elapsedTime);
-      }, 1000); // Update every second
+      }, 1000);
     } else {
       setElapsedTime(null);
     }
@@ -151,8 +161,6 @@ export function NewSession({ client }: HomeProps) {
     const maxVolumeValue = 128;
     const normalizedAverageVolume = Math.min(volume*10, maxVolumeValue) / maxVolumeValue; // Normalize volume to range 0-1
     const normalizedMaxVolume = Math.min(maxVolume*0.1, maxVolumeValue);
-    console.log('Normalized Average Volume:', normalizedAverageVolume);
-    console.log('Normalized Max Volume:', normalizedMaxVolume);
 
     // Map to score 1-5, penalize for high max volume
     const scoreWithPenalty = 5 - normalizedAverageVolume*5 - normalizedMaxVolume; 
@@ -172,12 +180,21 @@ export function NewSession({ client }: HomeProps) {
     }
 
     const scoreVolume = mapVolumeToScore(averageVolume, maxVolume);
-
+    const start_time = startTime ? new Date(startTime).toISOString() : new Date().toISOString();
+    const end_time = endTime ? new Date(endTime).toISOString() : new Date().toISOString();
+    const duration = elapsedTime !== null ? Math.round(elapsedTime / 1000) : 0;
+    console.log('Duration:', duration); // Add this line for debugging
+    
     try {
       await client.models.Sessions.create({
+        userId: userId,
         content: content,
         score_rating: numericRating,
-        score_volume: scoreVolume
+        score_volume: scoreVolume,
+        total_score: (numericRating+scoreVolume)/2,
+        start_time: start_time,
+        end_time: end_time,
+        duration: duration,
       });
       
       setContent('');
@@ -216,7 +233,7 @@ export function NewSession({ client }: HomeProps) {
 
         {isRecording && !isQuit && (
           <>
-            <p>Recording Time: {formatTime(elapsedTime)}</p>
+            <p className='recording-time'>Recording Time: {formatTime(elapsedTime)}</p>
             <canvas ref={canvasRef} width={300} height={100}></canvas>
             <button onClick={stopRecording}>Quit</button>
           </>
