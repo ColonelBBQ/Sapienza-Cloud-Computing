@@ -16,12 +16,12 @@ export function NewSession({ client }: HomeProps) {
   const [content, setContent] = useState('');
   const [rating, setRating] = useState('0');
   const [isRecording, setIsRecording] = useState(false);
-  const [startTime, setStartTime] = useState<number | null>(null);
-  const [endTime, setEndTime] = useState<number | null>(null);
+  const [startTime, setStartTime] = useState<Date | null>(null);
+  const [endTime, setEndTime] = useState<Date | null>(null);
   const [elapsedTime, setElapsedTime] = useState<number | null>(null);
   const [isStart, setIsStart] = useState(true);
   const [isQuit, setIsQuit] = useState(false);
-  const [duration, setDuration] =  useState<number | null>(null);
+  const [duration, setDuration] = useState<number | null>(null);
   const [audioData, setAudioData] = useState<Uint8Array | null>(null);
   const [averageVolume, setAverageVolume] = useState<number>(0);
   const [maxVolume, setMaxVolume] = useState<number>(0);
@@ -42,8 +42,8 @@ export function NewSession({ client }: HomeProps) {
     let interval: NodeJS.Timeout;
     if (isRecording && startTime !== null) {
       interval = setInterval(() => {
-        const currentTime = Date.now();
-        const elapsedTime = currentTime - startTime;
+        const currentTime = new Date();
+        const elapsedTime = currentTime.getTime() - startTime.getTime();
         setElapsedTime(elapsedTime);
       }, 1000);
     } else {
@@ -140,20 +140,19 @@ export function NewSession({ client }: HomeProps) {
 
   const startRecording = () => {
     setIsRecording(true);
-    setStartTime(Date.now());
+    setStartTime(new Date());
     setIsStart(false);
   };
 
   const stopRecording = () => {
     setIsRecording(false);
-    setStartTime(null);
     setIsQuit(true);
-    setEndTime(Date.now)
-    setDuration(
-      (endTime && startTime && endTime - startTime > 0) 
-        ? endTime - startTime 
-        : 1
-    )
+    const endTime = new Date();
+    setEndTime(endTime);
+    if (startTime) {
+      const durationMs = endTime.getTime() - startTime.getTime();
+      setDuration(Math.max(durationMs, 1));
+    }
     if (mediaStreamRef.current) {
       mediaStreamRef.current.getTracks().forEach(track => track.stop());
     }
@@ -178,27 +177,30 @@ export function NewSession({ client }: HomeProps) {
       alert('Please enter both content and rating');
       return;
     }
-
+  
     const numericRating = parseInt(rating, 10);
     if (numericRating < 1 || numericRating > 5) {
       alert('Rating must be between 1 and 5');
       return;
     }
-
+  
     const scoreVolume = mapVolumeToScore(averageVolume, maxVolume);
-    const start_time = startTime ? new Date(startTime).toISOString() : new Date().toISOString();
-    const end_time = endTime ? new Date(endTime).toISOString() : new Date().toISOString();
-    
+  
+    if (!startTime || !endTime || !duration) {
+      alert('Session timing information is missing');
+      return;
+    }
+  
     try {
       await client.models.Sessions.create({
         userId: userId,
         content: content,
         score_rating: numericRating,
         score_volume: scoreVolume,
-        total_score: (numericRating+scoreVolume)/2,
-        start_time: start_time,
-        end_time: end_time,
-        duration: duration,
+        total_score: (numericRating + scoreVolume) / 2,
+        start_time: startTime.toISOString(),
+        end_time: endTime.toISOString(),
+        duration: Math.round((duration/1000)/60),
       });
       
       setContent('');

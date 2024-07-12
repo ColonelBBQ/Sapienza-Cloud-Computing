@@ -74,26 +74,34 @@ function Home() {
           
           <div className='container-home'>
             <div className='container-sessions-with-title'>
-              <h2>Here are Your Recent Activities:</h2>
-              <ul>
-                {recentSessions.map((recentSessions) => (
-                  <li key={recentSessions.id}>
-                    <div className='container-sessions'>
-                      <div className='session'>
-                        <div>Date: {format(new Date(recentSessions.createdAt), 'yyyy-MM-dd')}, Volume: {recentSessions.score_volume}, Duration: {recentSessions.duration}</div>
-                        <div>Session Description: {recentSessions.content}</div>
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-              <button className='button-start-main' onClick={() => navigate('/new-session')}>Start New Session!</button>
+              {recentSessions.length === 0 ? (
+                <div className='no-sessions-message'>
+                  <h2>Start Your First Activity!</h2>
+                  <button className='button-start-main' onClick={() => navigate('/new-session')}>Start New Session!</button>
+                </div>
+              ) : (
+                <>
+                  <h2>Here are Your Recent Activities:</h2>
+                  <ul>
+                    {recentSessions.map((recentSession) => (
+                      <li key={recentSession.id}>
+                        <div className='container-sessions'>
+                          <div className='session'>
+                            <div>Date: {format(new Date(recentSession.createdAt), 'yyyy-MM-dd')}, Score: {recentSession.total_score}, Duration: {recentSession.duration} min</div>
+                            <div>Session Description: {recentSession.content}</div>
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                  <button className='button-start-main' onClick={() => navigate('/new-session')}>Start New Session!</button>
+                </>
+              )}
             </div>
             <div className='streak-container'>
               <h2 className='streak-title'>Your Streak: {userData?.currentStreak ?? 'Loading...'} Days</h2>
             </div>
           </div>
-          
         </div>
       )}
     </Authenticator>

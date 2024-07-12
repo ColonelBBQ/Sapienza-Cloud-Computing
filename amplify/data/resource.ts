@@ -5,12 +5,12 @@ const schema = a.schema({
     content: a.string(),
     score_rating: a.integer(),
     score_volume: a.integer(),
-    total_score: a.integer(),
+    total_score: a.float(),
     userId: a.id(),
-    start_time: a.datetime(), // Using string for datetime
-    end_time: a.datetime(), // Using string for datetime
-    duration: a.integer(), // Duration in seconds
-    user: a.belongsTo('User', 'userId') // Ensure this reference matches the type used in UserStreak
+    start_time: a.datetime(),
+    end_time: a.datetime(),
+    duration: a.integer(),
+    user: a.belongsTo('User', 'userId')
   }).authorization(allow => [allow.owner()]),
 
   User: a.model({
@@ -21,7 +21,8 @@ const schema = a.schema({
     longestStreak: a.integer(),
     createdAt: a.datetime(),
     updatedAt: a.datetime(),
-  }).authorization(allow => [allow.owner()])
+  }).authorization(allow => [
+    allow.owner().to(['read'])])
 });
 
 // Used for code completion / highlighting when making requests from frontend
