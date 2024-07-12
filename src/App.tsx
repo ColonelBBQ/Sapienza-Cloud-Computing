@@ -51,10 +51,15 @@ function Home() {
     setRecentSessions(sessions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 6));
   }, [sessions]);  
 
-  useEffect(() => {
-    setRecentSessions(sessions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 6));
-  }, [sessions]);
-  
+  const getStreakImage = (streak: number | null | undefined) => {
+    if (streak === null || streak === undefined) return "src/assets/progression_streak/1.png";
+    if (streak < 1) return "src/assets/progression_streak/1.png";
+    if (streak < 5) return "src/assets/progression_streak/2.png";
+    if (streak < 20) return "src/assets/progression_streak/3.png";
+    if (streak < 50) return "src/assets/progression_streak/4.png";
+    if (streak < 100) return "src/assets/progression_streak/5.png";
+    return "src/assets/progression_streak/6.png";
+  };
   
   return (
     <Authenticator signUpAttributes={['given_name', "email"]} socialProviders={['apple', 'google']}>
@@ -100,6 +105,11 @@ function Home() {
             </div>
             <div className='streak-container'>
               <h2 className='streak-title'>Your Streak: {userData?.currentStreak ?? 'Loading...'} Days</h2>
+              <img 
+                src={getStreakImage(userData?.currentStreak)}
+                alt=''
+                className="streak-image"
+              />
             </div>
           </div>
         </div>
