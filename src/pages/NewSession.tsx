@@ -21,6 +21,7 @@ export function NewSession({ client }: HomeProps) {
   const [elapsedTime, setElapsedTime] = useState<number | null>(null);
   const [isStart, setIsStart] = useState(true);
   const [isQuit, setIsQuit] = useState(false);
+  const [duration, setDuration] =  useState<number | null>(null);
   const [audioData, setAudioData] = useState<Uint8Array | null>(null);
   const [averageVolume, setAverageVolume] = useState<number>(0);
   const [maxVolume, setMaxVolume] = useState<number>(0);
@@ -43,7 +44,6 @@ export function NewSession({ client }: HomeProps) {
       interval = setInterval(() => {
         const currentTime = Date.now();
         const elapsedTime = currentTime - startTime;
-        setEndTime(currentTime)
         setElapsedTime(elapsedTime);
       }, 1000);
     } else {
@@ -148,6 +148,12 @@ export function NewSession({ client }: HomeProps) {
     setIsRecording(false);
     setStartTime(null);
     setIsQuit(true);
+    setEndTime(Date.now)
+    setDuration(
+      (endTime && startTime && endTime - startTime > 0) 
+        ? endTime - startTime 
+        : 1
+    )
     if (mediaStreamRef.current) {
       mediaStreamRef.current.getTracks().forEach(track => track.stop());
     }
@@ -182,8 +188,6 @@ export function NewSession({ client }: HomeProps) {
     const scoreVolume = mapVolumeToScore(averageVolume, maxVolume);
     const start_time = startTime ? new Date(startTime).toISOString() : new Date().toISOString();
     const end_time = endTime ? new Date(endTime).toISOString() : new Date().toISOString();
-    const duration = elapsedTime !== null ? Math.round(elapsedTime / 1000) : 0;
-    console.log('Duration:', duration); // Add this line for debugging
     
     try {
       await client.models.Sessions.create({
@@ -223,32 +227,42 @@ export function NewSession({ client }: HomeProps) {
 
   return (
     <main>
+      <nav className='nav-bar'>
+        <a className="navbar-brand" href="/">
+          <img className='logo-img' src="src/assets/logo.png" alt="" />
+          meditdiary
+        </a>
+        <div className='nav-container'>
+          <button className="button-sign-out">Sign out</button>
+        </div>
+      </nav>
       <div className='container-activity'>
         {isStart && (
           <>
-          <h1>When You Are Ready to Meditate Press Start!</h1>
-          <button onClick={startRecording}>Start</button>
+          <h1 className='newsession-start-title'>When You Are Ready to Meditate Press Start!</h1>
+          <button className='newsession-start-button' onClick={startRecording}>Start</button>
           </>
         )}
 
         {isRecording && !isQuit && (
           <>
-            <p className='recording-time'>Recording Time: {formatTime(elapsedTime)}</p>
-            <canvas ref={canvasRef} width={300} height={100}></canvas>
-            <button onClick={stopRecording}>Quit</button>
+            <h2 className='recording-time'>Recording Time: {formatTime(elapsedTime)}</h2>
+            <canvas className='recording-table' ref={canvasRef} width={300} height={100}></canvas>
+            <button className='recording-button' onClick={stopRecording}>Quit</button>
           </>
         )}
 
         {!isRecording && isQuit && (
           <>
-            <input 
+            <input
+              className='input-content' 
               type="text" 
               placeholder="Enter content"
               value={content}
               onChange={(e) => setContent(e.target.value)}
             />
             <StarRating totalStars={5} onChange={handleRatingChange} />              
-            <button onClick={createSession}>Send</button>
+            <button className='input-button' onClick={createSession}>Submit</button>
           </>
         )}
       </div>

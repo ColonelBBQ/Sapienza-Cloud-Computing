@@ -18,6 +18,8 @@ function Home() {
   const [sessions, setSessions] = useState<Array<Schema["Sessions"]["type"]>>([]);
   const [recentSessions, setRecentSessions] = useState<Array<Schema["Sessions"]["type"]>>([]);
   const [userName, setUserName] = useState<string>("");
+  const [userId, setUserId] = useState<string>("");
+  const [userData, setUserData] = useState<Schema["User"]["type"] | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,13 +28,33 @@ function Home() {
     });
 
     fetchUserAttributes().then(attributes => {
+      const userSub = attributes.sub;
       setUserName(attributes.given_name || attributes.givenName || "User");
+      setUserId(userSub || "User");
+
+      // Fetch User data
+      if (userSub) {
+        client.models.User.get({ id: userSub })
+          .then(({ data, errors }) => {
+            if (errors) {
+              console.error('Error fetching user data:', errors);
+            } else if (data) {
+              setUserData(data);
+            }
+          })
+          .catch(console.error);
+      }
     }).catch(console.error);
   }, []);
 
   useEffect(() => {
     setRecentSessions(sessions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 6));
+  }, [sessions]);  
+
+  useEffect(() => {
+    setRecentSessions(sessions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 6));
   }, [sessions]);
+  
   
   return (
     <Authenticator signUpAttributes={['given_name', "email"]} socialProviders={['apple', 'google']}>
@@ -49,25 +71,29 @@ function Home() {
           </nav>
 
           <h1 className='main-title'>Hi {userName}! Welcome to Your Meditation Diary!</h1>
-          <div className='container-sessions-with-title'>
-            <h2>Here are Your Recent Activities:</h2>
-            <ul>
-              {recentSessions.map((recentSessions) => (
-                <li key={recentSessions.id}>
-                  <div className='container-sessions'>
-                    <div className='session'>
-                      <div>Date: {format(new Date(recentSessions.createdAt), 'yyyy-MM-dd')}, Volume: {recentSessions.score_volume}, Rating: {recentSessions.score_rating}</div>
-                      <div>Session Description: {recentSessions.content}</div>
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-            <button className='button-start-main' onClick={() => navigate('/new-session')}>Start New Session!</button>
-          </div>
-          <div>
           
+          <div className='container-home'>
+            <div className='container-sessions-with-title'>
+              <h2>Here are Your Recent Activities:</h2>
+              <ul>
+                {recentSessions.map((recentSessions) => (
+                  <li key={recentSessions.id}>
+                    <div className='container-sessions'>
+                      <div className='session'>
+                        <div>Date: {format(new Date(recentSessions.createdAt), 'yyyy-MM-dd')}, Volume: {recentSessions.score_volume}, Duration: {recentSessions.duration}</div>
+                        <div>Session Description: {recentSessions.content}</div>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              <button className='button-start-main' onClick={() => navigate('/new-session')}>Start New Session!</button>
+            </div>
+            <div className='streak-container'>
+              <h2 className='streak-title'>Your Streak: {userData?.currentStreak ?? 'Loading...'} Days</h2>
+            </div>
           </div>
+          
         </div>
       )}
     </Authenticator>

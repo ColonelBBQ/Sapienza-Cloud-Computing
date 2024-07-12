@@ -14,11 +14,13 @@ const schema = a.schema({
   }).authorization(allow => [allow.owner()]),
 
   User: a.model({
-    owner: a.string(),
-    sessions: a.hasMany('Sessions', 'userId'), // Ensure this reference matches the type used in Sessions
-    lastMeditationDate: a.datetime(), // Using string for datetime
+    id: a.string(),
+    sessions: a.hasMany('Sessions', 'userId'),
+    lastMeditationDate: a.datetime(),
     currentStreak: a.integer(),
     longestStreak: a.integer(),
+    createdAt: a.datetime(),
+    updatedAt: a.datetime(),
   }).authorization(allow => [allow.owner()])
 });
 
