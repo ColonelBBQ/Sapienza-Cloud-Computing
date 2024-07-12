@@ -16,9 +16,9 @@ const schema = a.schema({
   User: a.model({
     id: a.string(),
     sessions: a.hasMany('Sessions', 'userId'),
-    lastMeditationDate: a.datetime(),
     currentStreak: a.integer(),
     longestStreak: a.integer(),
+    completedDaily: a.boolean(),
     createdAt: a.datetime(),
     updatedAt: a.datetime(),
   }).authorization(allow => [
