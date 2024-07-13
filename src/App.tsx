@@ -103,10 +103,10 @@ function Home() {
   const getStreakImage = (streak: number | null | undefined) => {
     if (streak === null || streak === undefined) return streak1;
     if (streak < 1) return streak1;
-    if (streak < 5) return streak3;
-    if (streak < 20) return streak4;
-    if (streak < 50) return streak5;
-    if (streak < 100) return streak6;
+    if (streak < 5) return streak2;
+    if (streak < 20) return streak3;
+    if (streak < 50) return streak4;
+    if (streak < 100) return streak5;
     return streak6;
   };
   
