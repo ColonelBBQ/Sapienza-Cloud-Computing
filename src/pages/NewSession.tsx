@@ -5,7 +5,7 @@ import { Schema } from "../../amplify/data/resource";
 import { generateClient } from "aws-amplify/data";
 import { useNavigate } from 'react-router-dom';
 import { fetchUserAttributes } from '@aws-amplify/auth';
-import logoImage from './assets/logo.png';
+import logoImage from '../assets/logo.png';
 
 type GeneratedClient = ReturnType<typeof generateClient<Schema>>;
 
