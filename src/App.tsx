@@ -10,12 +10,12 @@ import NewSession from './pages/NewSession';
 import { format } from 'date-fns';
 import { Hub } from 'aws-amplify/utils';
 import { fetchAuthSession, fetchUserAttributes } from '@aws-amplify/auth';
-import streak1 from '../assets/progression_streak/1.png';
-import streak2 from '../assets/progression_streak/2.png';
-import streak3 from '../assets/progression_streak/3.png';
-import streak4 from '../assets/progression_streak/4.png';
-import streak5 from '../assets/progression_streak/5.png';
-import streak6 from '../assets/progression_streak/6.png';
+import streak1 from './assets/progression_streak/1.png';
+import streak2 from './assets/progression_streak/2.png';
+import streak3 from './assets/progression_streak/3.png';
+import streak4 from './assets/progression_streak/4.png';
+import streak5 from './assets/progression_streak/5.png';
+import streak6 from './assets/progression_streak/6.png';
 
 
 Amplify.configure(outputs);
