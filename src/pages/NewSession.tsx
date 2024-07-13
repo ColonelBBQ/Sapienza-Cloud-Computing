@@ -5,6 +5,7 @@ import { Schema } from "../../amplify/data/resource";
 import { generateClient } from "aws-amplify/data";
 import { useNavigate } from 'react-router-dom';
 import { fetchUserAttributes } from '@aws-amplify/auth';
+import logoImage from './assets/logo.png';
 
 type GeneratedClient = ReturnType<typeof generateClient<Schema>>;
 
@@ -231,7 +232,7 @@ export function NewSession({ client }: HomeProps) {
     <main>
       <nav className='nav-bar'>
         <a className="navbar-brand" href="/">
-          <img className='logo-img' src="src/assets/logo.png" alt="" />
+          <img className='logo-img' src={logoImage} alt="" />
           meditdiary
         </a>
         <div className='nav-container'>

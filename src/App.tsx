@@ -16,6 +16,7 @@ import streak3 from './assets/progression_streak/3.png';
 import streak4 from './assets/progression_streak/4.png';
 import streak5 from './assets/progression_streak/5.png';
 import streak6 from './assets/progression_streak/6.png';
+import logoImage from './assets/logo.png';
 
 
 Amplify.configure(outputs);
@@ -116,7 +117,7 @@ function Home() {
         <div className='app-container'>
           <nav className='nav-bar'>
             <a className="navbar-brand" href="/">
-             <img className='logo-img' src="src/assets/logo.png" alt="" />
+             <img className='logo-img' src={logoImage} alt="" />
              meditdiary
             </a>
             <div className='nav-container'>
