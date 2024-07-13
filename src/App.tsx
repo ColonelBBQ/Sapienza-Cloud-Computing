@@ -4,11 +4,12 @@ import { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import type { Schema } from "../amplify/data/resource";
 import { generateClient } from "aws-amplify/data";
-import { fetchUserAttributes } from '@aws-amplify/auth';
 import { Amplify } from 'aws-amplify';
 import outputs from "../amplify_outputs.json";
 import NewSession from './pages/NewSession';
 import { format } from 'date-fns';
+import { Hub } from 'aws-amplify/utils';
+import { fetchAuthSession, fetchUserAttributes } from '@aws-amplify/auth';
 
 Amplify.configure(outputs);
 
@@ -22,34 +23,78 @@ function Home() {
   const [userData, setUserData] = useState<Schema["User"]["type"] | null>(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    client.models.Sessions.observeQuery().subscribe({
-      next: (data) => setSessions([...data.items]),
-    });
-
-    fetchUserAttributes().then(attributes => {
+  const fetchUserData = async () => {
+    try {
+      await fetchAuthSession({ forceRefresh: true });
+      const attributes = await fetchUserAttributes();
       const userSub = attributes.sub;
       setUserName(attributes.given_name || attributes.givenName || "User");
       setUserId(userSub || "User");
 
-      // Fetch User data
       if (userSub) {
-        client.models.User.get({ id: userSub })
-          .then(({ data, errors }) => {
-            if (errors) {
-              console.error('Error fetching user data:', errors);
-            } else if (data) {
-              setUserData(data);
-            }
-          })
-          .catch(console.error);
+        const { data, errors } = await client.models.User.get({ id: userSub });
+        if (errors) {
+          console.error('Error fetching user data:', errors);
+        } else if (data) {
+          setUserData(data);
+        }
       }
-    }).catch(console.error);
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    }
+  };
+
+  const fetchSessions = () => {
+    return client.models.Sessions.observeQuery().subscribe({
+      next: (data) => setSessions([...data.items]),
+    });
+  };
+
+  useEffect(() => {
+    let sessionsSubscription: { unsubscribe: () => void } | null = null;
+
+    const initializeData = async () => {
+      await fetchUserData();
+      sessionsSubscription = fetchSessions();
+    };
+
+    initializeData();
+
+    const hubListener = Hub.listen('auth', async ({ payload }) => {
+      switch (payload.event) {
+        case 'signedIn':
+          console.log('user have been signedIn successfully.');
+          await fetchUserData();
+          if (sessionsSubscription) {
+            sessionsSubscription.unsubscribe();
+          }
+          sessionsSubscription = fetchSessions();
+          break;
+        case 'signedOut':
+          console.log('user have been signedOut successfully.');
+          setUserName("");
+          setUserId("");
+          setUserData(null);
+          setSessions([]);
+          setRecentSessions([]);
+          if (sessionsSubscription) {
+            sessionsSubscription.unsubscribe();
+          }
+          break;
+      }
+    });
+
+    return () => {
+      hubListener();
+      if (sessionsSubscription) {
+        sessionsSubscription.unsubscribe();
+      }
+    };
   }, []);
 
   useEffect(() => {
     setRecentSessions(sessions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 6));
-  }, [sessions]);  
+  }, [sessions]);
 
   const getStreakImage = (streak: number | null | undefined) => {
     if (streak === null || streak === undefined) return "src/assets/progression_streak/1.png";
