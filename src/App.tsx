@@ -10,6 +10,13 @@ import NewSession from './pages/NewSession';
 import { format } from 'date-fns';
 import { Hub } from 'aws-amplify/utils';
 import { fetchAuthSession, fetchUserAttributes } from '@aws-amplify/auth';
+import streak1 from '../assets/progression_streak/1.png';
+import streak2 from '../assets/progression_streak/2.png';
+import streak3 from '../assets/progression_streak/3.png';
+import streak4 from '../assets/progression_streak/4.png';
+import streak5 from '../assets/progression_streak/5.png';
+import streak6 from '../assets/progression_streak/6.png';
+
 
 Amplify.configure(outputs);
 
@@ -94,17 +101,17 @@ function Home() {
   }, [sessions]);
 
   const getStreakImage = (streak: number | null | undefined) => {
-    if (streak === null || streak === undefined) return "src/assets/progression_streak/1.png";
-    if (streak < 1) return "src/assets/progression_streak/1.png";
-    if (streak < 5) return "src/assets/progression_streak/2.png";
-    if (streak < 20) return "src/assets/progression_streak/3.png";
-    if (streak < 50) return "src/assets/progression_streak/4.png";
-    if (streak < 100) return "src/assets/progression_streak/5.png";
-    return "src/assets/progression_streak/6.png";
+    if (streak === null || streak === undefined) return streak1;
+    if (streak < 1) return streak1;
+    if (streak < 5) return streak3;
+    if (streak < 20) return streak4;
+    if (streak < 50) return streak5;
+    if (streak < 100) return streak6;
+    return streak6;
   };
   
   return (
-    <Authenticator signUpAttributes={['given_name', "email"]} socialProviders={['apple', 'google']}>
+    <Authenticator signUpAttributes={['given_name', "email"]}>
       {({ signOut }) => (
         <div className='app-container'>
           <nav className='nav-bar'>
