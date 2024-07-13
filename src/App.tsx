@@ -19,7 +19,6 @@ function Home() {
   const [sessions, setSessions] = useState<Array<Schema["Sessions"]["type"]>>([]);
   const [recentSessions, setRecentSessions] = useState<Array<Schema["Sessions"]["type"]>>([]);
   const [userName, setUserName] = useState<string>("");
-  const [userId, setUserId] = useState<string>("");
   const [userData, setUserData] = useState<Schema["User"]["type"] | null>(null);
   const navigate = useNavigate();
 
@@ -29,7 +28,6 @@ function Home() {
       const attributes = await fetchUserAttributes();
       const userSub = attributes.sub;
       setUserName(attributes.given_name || attributes.givenName || "User");
-      setUserId(userSub || "User");
 
       if (userSub) {
         const { data, errors } = await client.models.User.get({ id: userSub });
@@ -73,7 +71,6 @@ function Home() {
         case 'signedOut':
           console.log('user have been signedOut successfully.');
           setUserName("");
-          setUserId("");
           setUserData(null);
           setSessions([]);
           setRecentSessions([]);
