@@ -3,6 +3,8 @@
 ## Project Overview
 Meditdiary is a web application designed to help users build and maintain a meditation habit. It serves as a diary to log meditation sessions and includes features like a streak reward system and session scoring based on noise levels and user inputs.
 
+Final Grade: 30/30
+
 ![image](https://github.com/user-attachments/assets/288da635-3897-4c1a-961e-fcc10a01dd3a)
 
 ## Problem Addressed
