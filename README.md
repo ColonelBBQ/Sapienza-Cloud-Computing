@@ -1,25 +1,32 @@
-## AWS Amplify React+Vite Starter Template
+# Meditdiary - Cloud Computing Project
 
-This repository provides a starter template for creating applications using React+Vite and AWS Amplify, emphasizing easy setup for authentication, API, and database capabilities.
+## Project Overview
+Meditdiary is a web application designed to help users build and maintain a meditation habit. It serves as a diary to log meditation sessions and includes features like a streak reward system and session scoring based on noise levels and user inputs.
 
-## Overview
+![image](https://github.com/user-attachments/assets/288da635-3897-4c1a-961e-fcc10a01dd3a)
 
-This template equips you with a foundational React application integrated with AWS Amplify, streamlined for scalability and performance. It is ideal for developers looking to jumpstart their project with pre-configured AWS services like Cognito, AppSync, and DynamoDB.
+## Problem Addressed
+The application addresses the common challenge of maintaining a consistent meditation habit by providing users with tools to track their progress and receive feedback on their meditation sessions.
 
-## Features
+## Key Features
+Streak Reward System: Users earn streaks for consecutive days of meditation. Missing a day resets the streak to zero.
+Session Scoring: Sessions are scored based on ambient noise levels and user inputs, providing a feedback loop to improve meditation quality.
 
-- **Authentication**: Setup with Amazon Cognito for secure user authentication.
-- **API**: Ready-to-use GraphQL endpoint with AWS AppSync.
-- **Database**: Real-time database powered by Amazon DynamoDB.
+## Data Schema
+The data model includes two main entities: Sessions and User, which are linked to track user activities and manage streaks efficiently. Ownership-based authorization rules ensure that users can only access their own data.
 
-## Deploying to AWS
+## New Session Manager
+The New Session feature processes audio data in the browser using the WebAudio API to minimize server-side computation. It records session details, including noise levels, to provide feedback on the meditation environment.
 
-For detailed instructions on deploying your application, refer to the [deployment section](https://docs.amplify.aws/react/start/quickstart/#deploy-a-fullstack-app-to-aws) of our documentation.
+## Scale-in/Scale-out Experiment
+Experimental Design
+The application’s scalability was tested using AWS Amplify's auto-scaling features. Load testing was performed using JMeter, simulating up to 1,000 concurrent users to observe the system's performance and auto-scaling behavior.
 
-## Security
+### Experimental Results
+The testing revealed that the system effectively handled increased load, though some inefficiencies were noted during the scale-in phase, particularly in CPU usage and latency.
 
-See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
-
-## License
-
-This library is licensed under the MIT-0 License. See the LICENSE file.
+## Access and Usage
+Live Website: Meditdiary
+Test Credentials:
+- User: testuser1@example.com
+- Password: CLCProject98!
