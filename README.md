@@ -26,7 +26,8 @@ The application’s scalability was tested using AWS Amplify's auto-scaling feat
 The testing revealed that the system effectively handled increased load, though some inefficiencies were noted during the scale-in phase, particularly in CPU usage and latency.
 
 ## Access and Usage
-Live Website: Meditdiary
+Live Website: [Meditdiary](https://main.d2uc62ra8hdgvk.amplifyapp.com/)
+
 Test Credentials:
 - User: testuser1@example.com
 - Password: CLCProject98!
